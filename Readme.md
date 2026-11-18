@@ -1,339 +1,186 @@
-
 # PrintQueue 🖨️
 
 ### Smart Printing Queue Management and Waiting-Time Estimation System
+**Campus Photocopy & Print Center · NIT Jamshedpur**
 
-**PrintQueue** is a web-based application designed to help campus photocopy and printing shops manage printing orders and estimate student waiting times.
-
-The project addresses a common problem faced by students: long and uncertain waiting times at printing shops, especially during peak hours. It aims to make order management more organized and provide students with an estimated waiting time based on queue information and historical printing records.
+**PrintQueue** is a full-stack MERN application that solves the problem of long, uncertain waiting lines at campus printing and photocopy shops. It provides an automated, digital queue, waiting-time estimation calibrated against real fieldwork data, secure shopkeeper operations, and online document upload with server-side price calculation.
 
 **GitHub Repository:** [anuragsharma2512/Print-Queue](https://github.com/anuragsharma2512/Print-Queue)
 
 ---
 
-## 📌 Problem Statement
+## 📌 Problem & Fieldwork Backing
 
-Students visiting campus printing shops often face long queues and uncertain waiting times. The problem becomes more noticeable during busy periods when several students submit printing requests simultaneously.
+Students at NIT Jamshedpur frequently experience unpredictable wait times, especially during morning peak rush (**8:30 AM – 9:30 AM**) and evening rush (**6:00 PM**). The shopkeeper previously managed counter walk-ins and incoming WhatsApp orders manually on paper or memory.
 
-Printing shops may receive orders through walk-in requests, WhatsApp, or email. Managing these orders manually can become difficult when multiple documents and printing jobs arrive together.
-
-Students may have to wait for a long time, and some may leave the shop after seeing a crowded queue.
-
-PrintQueue aims to address this problem through digital queue management and data-based waiting-time estimation.
+Fieldwork conducted on **17 November 2026** at the campus shop produced **20 real printing job records** (`data.csv`), establishing empirical baseline durations:
+- **B&W Printout / Xerox:** ~69s – 76s
+- **Colour Printout / Colour Xerox:** ~85s – 90s
 
 ---
 
-## 🎯 Project Objectives
+## ✨ Features
 
-- Organize printing orders in a digital queue.
-- Help shopkeepers manage pending and ongoing printing jobs.
-- Track the status of each printing job.
-- Estimate waiting and completion times using job details and historical records.
-- Store completed job records for future analysis.
-- Reduce uncertainty for students waiting for their printing jobs.
+### 🧑‍🎓 1. Student Portal
+- **Live Queue & Wait Time:** Real-time visibility into the queue backlog and estimated wait.
+- **Operating Hours Status:** Dynamic status display reflecting counter operating hours (**8:00 AM – 8:00 PM**).
+- **Online Printing Order Submission:**
+  - Direct PDF document upload (up to 10 MB).
+  - Server-side PDF page count detection (powered by `pdf-parse`).
+  - Selection of official campus printing types and copies.
+  - Transparent price calculation breakdown before submission.
+- **Mandatory Payment Agreement:** Required acknowledgement checkbox agreeing to offline payment upon print collection.
+- **Order Tracking:** Track submitted jobs in real time with unique Order IDs (e.g. `PQ-021`).
+- **Interactive Turnaround Calculator:** Simulate printing time before queuing.
 
----
-
-## ✨ Planned Features
-
-### 1. Student Interface
-
-- View the current printing queue.
-- Check pending printing jobs and their status.
-- View estimated waiting and completion times.
-- Understand the progress of printing orders.
-
-### 2. Shopkeeper Dashboard
-
-- Add new printing jobs.
-- View and manage the printing queue.
-- Update job status:
-  - Pending
-  - Processing
-  - Completed
-- Record job details such as printing type and number of pages.
-- Maintain a history of completed jobs.
-
-### 3. Waiting-Time Estimation
-
-- Consider the number of jobs ahead in the queue.
-- Consider the type of printing job and number of pages.
-- Analyze historical service durations.
-- Estimate waiting time and expected completion time.
+### 🧑‍🔧 2. Shopkeeper Console (Protected)
+- **Backend Authentication:** Enforced via `bcrypt` PIN hashing and 8-hour HttpOnly JWT cookies.
+- **Session Protection:** Route guards with auto-session restoration on page refresh and explicit **"Lock Console & Switch to Student View"** logout.
+- **Queue Dispatch:** Forward-only status controls (`Pending` $\rightarrow$ `Processing` $\rightarrow$ `Completed`).
+- **Secure Document Download:** Authenticated streaming of student PDFs directly from server storage.
+- **Counter Order Entry:** Quick entry for walk-in and WhatsApp requests.
+- **Historical Records:** Complete log of completed orders with measured durations.
 
 ---
 
-## 🔍 Fieldwork and Research
+## 💵 Official Campus Printing Rates
 
-Fieldwork was conducted at the campus printing shop at **NIT Jamshedpur** on **17 November 2026**.
+Configured centrally on the backend in `server/services/pricingService.js`:
 
-The fieldwork included:
-
-- Interviewing the shopkeeper.
-- Observing the queue and multiple incoming WhatsApp orders.
-- Collecting 20 or more actual printing job records.
-- Taking photographs as supporting fieldwork evidence.
-
-### Findings from the Shopkeeper Interview
-
-- The shop generally experiences high demand between **8:30 AM and 9:30 AM**.
-- Another busy period occurs around **6:00 PM**.
-- Most students provide documents when they arrive at the shop.
-- Some students send documents through WhatsApp or email before arriving.
-- Multiple PDFs may be submitted by a student.
-- WhatsApp orders are generally handled in the order received.
-- Walk-in orders are managed according to the shopkeeper's judgment and the situation.
-- Students sometimes leave and return to their hostel after seeing a long queue.
-- The shopkeeper reported that printing a PDF takes approximately one minute on average, although actual time varies depending on the job.
-
----
-
-## 📊 Dataset and Analysis
-
-The project includes a dataset collected during fieldwork.
-
-**Dataset:** `data/fieldwork_records.csv`
-
-The dataset contains **20 actual printing job records** collected at the campus printing shop.
-
-### Dataset Fields
-
-| Field | Description |
-|---|---|
-| Job ID | Unique identifier for each job |
-| Arrival Time | Time when the job arrived |
-| Service Start Time | Time when processing started |
-| Service End Time | Time when processing finished |
-| Job Type | B&W Print, Colour Print, or B&W Photocopy |
-| Number of Pages | Number of pages in the job |
-| Submission Method | Walk-in or WhatsApp |
-| Queue Ahead | Number of jobs ahead in the queue |
-| Waiting Time (sec) | Time spent waiting before processing |
-| Service Time (sec) | Time taken to process the job |
-
-### Dataset Summary
-
-| Measurement | Result |
+| Printing Type | Rate per Page |
 |---|---:|
-| Total job records | 20 |
-| B&W Print jobs | 11 |
-| Colour Print jobs | 5 |
-| B&W Photocopy jobs | 4 |
-| Walk-in submissions | 13 |
-| WhatsApp submissions | 7 |
-| Average waiting time | 66.55 seconds |
-| Median waiting time | 30 seconds |
-| Maximum waiting time | 232 seconds |
-| Average service time | 74.45 seconds |
-| Median service time | 70.5 seconds |
+| **Xerox** | ₹2 |
+| **Colour Xerox** | ₹5 |
+| **Black & White Printout** | ₹3 |
+| **Colour Printout** | ₹8 |
 
-### Morning and Evening Comparison
-
-| Period | Number of Jobs | Average Waiting Time | Maximum Waiting Time |
-|---|---:|---:|---:|
-| Morning (08:30–09:30) | 12 | 56.25 seconds | 192 seconds |
-| Evening (around 18:00) | 8 | 82 seconds | 232 seconds |
-
-In this collected sample, the evening records had a higher average waiting time than the morning records.
-
-**Note:** These statistics describe the 20 records collected on the fieldwork date. They should not be treated as a complete representation of the shop's workload on every day.
+$$\text{Total Pages} = \text{PDF Pages} \times \text{Copies}$$
+$$\text{Estimated Amount} = \text{Total Pages} \times \text{Price Per Page}$$
 
 ---
 
-## 🧮 Waiting-Time Estimation Approach
+## 🔒 Security Architecture
 
-The initial estimation method will use historical job records and current queue information.
-
-A basic estimate can be calculated as:
-
-**Estimated Waiting Time = Remaining Time of Current Job + Estimated Service Times of Jobs Ahead**
-
-The estimated completion time for a new job can then be calculated as:
-
-**Estimated Completion Time = Current Time + Estimated Waiting Time + Estimated Service Time of New Job**
-
-Historical average or median service durations can be used to estimate the service time of pending jobs.
-
-The estimation method can be evaluated and improved as more real job records become available.
+- **PIN Security:** Stored as a salted `bcrypt` hash (`SHOPKEEPER_PIN_HASH`). Never stored in plain text or exposed to frontend code.
+- **JWT & HttpOnly Cookies:** Authentication tokens are stored in `HttpOnly`, `SameSite=Lax` cookies, preventing XSS token theft.
+- **Rate Limiting:** `express-rate-limit` prevents brute-force PIN guessing on `/api/auth/login` and spam on `/api/student-orders`.
+- **HTTP Hardening:** `helmet` sets secure HTTP response headers.
+- **Document Protection:** Uploaded PDFs are stored outside public web roots (`server/uploads/documents/`) and can only be downloaded by an authenticated shopkeeper.
+- **File Validation:** Strict verification of MIME types (`application/pdf`) and file size limits (10 MB).
 
 ---
 
 ## 🛠️ Technology Stack
 
-The project is planned using the **MERN stack**.
-
-| Technology | Purpose |
-|---|---|
-| MongoDB | Database for printing jobs and job history |
-| Express.js | Backend API framework |
-| React.js | Frontend user interface |
-| Node.js | Backend JavaScript runtime |
-| Mongoose | MongoDB object modeling |
-| Tailwind CSS (optional) | Frontend styling |
-| Recharts (optional) | Charts and statistics |
-| Axios (optional) | Frontend API communication |
+- **Frontend:** React 19, Vite, Tailwind CSS v4, Lucide Icons, Axios.
+- **Backend:** Node.js, Express.js (MVC + Service Layer Architecture).
+- **Database:** MongoDB & Mongoose.
+- **Security:** bcryptjs, jsonwebtoken, cookie-parser, express-rate-limit, helmet.
+- **Document Processing:** multer, pdf-parse.
 
 ---
 
-## 📁 Project Structure
-
-The planned project structure is:
+## 📁 Repository Structure
 
 ```text
 Print-Queue/
+├── client/                      # React frontend
+│   ├── src/
+│   │   ├── components/          # StudentOrderModal, TrackOrderModal, QueueTable, etc.
+│   │   ├── context/             # AuthContext (central backend session state)
+│   │   ├── pages/               # StudentPage, DashboardPage
+│   │   ├── services/            # Axios API client with withCredentials: true
+│   │   └── lib/                 # Status, hours, formatters, and style utilities
+│   ├── index.html
+│   └── vite.config.js           # Includes @tailwindcss/vite
 │
-├── client/                     # React frontend
-│   ├── public/
-│   └── src/
-│       ├── components/
-│       ├── pages/
-│       ├── services/
-│       └── App.jsx
+├── server/                      # Node.js + Express backend
+│   ├── config/                  # MongoDB connection (db.js)
+│   ├── controllers/             # authController, studentOrderController, jobController, etc.
+│   ├── middleware/              # authMiddleware, uploadMiddleware, rateLimitMiddleware
+│   ├── models/                  # Job.js (Mongoose schema)
+│   ├── routes/                  # authRoutes, studentOrderRoutes, jobRoutes, queueRoutes
+│   ├── services/                # pricingService.js, pdfService.js, predictionService.js
+│   ├── uploads/                 # Secure storage for uploaded student PDFs (git-ignored)
+│   ├── seed.js                  # Database seeder from data.csv
+│   ├── test_all_features.js     # Comprehensive 31-test automated suite
+│   ├── test_api.js              # Standard API test runner
+│   ├── server.js                # Server entry point
+│   └── .env.example
 │
-├── server/                     # Node.js and Express backend
-│   ├── config/
-│   ├── controllers/
-│   ├── models/
-│   ├── routes/
-│   └── server.js
-│
-├── data.csv
-│
-├── evidence/
-│
-├── research.md
-├── fieldwork.md
-├── README.md
-└── .gitignore
+├── data.csv                     # 20 real fieldwork records from NIT Jamshedpur
+├── fieldwork.md                 # Fieldwork documentation and interview details
+├── research.md                  # Problem research and solution analysis
+└── README.md
 ```
-
-This is the proposed structure and may change during development.
 
 ---
 
-## ⚙️ Installation and Setup
+## ⚙️ Installation & Setup
 
 ### Prerequisites
+- Node.js (v18+ recommended)
+- MongoDB running locally (`mongodb://localhost:27017`) or a MongoDB Atlas connection string.
 
-Install the following before running the project:
-
-- Node.js
-- npm
-- MongoDB (local installation or MongoDB Atlas account)
-- Git
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/anuragsharma2512/Print-Queue.git
-cd Print-Queue
-```
-
-### 2. Set Up the Backend
-
+### 1. Clone & Setup Backend
 ```bash
 cd server
 npm install
 ```
 
-Create a `.env` file inside the `server` directory:
-
+Create `server/.env` based on `server/.env.example`:
 ```env
 PORT=5000
-MONGO_URI=your_mongodb_connection_string
+MONGO_URI=mongodb://localhost:27017/printqueue
+SHOPKEEPER_PIN_HASH=$2b$10$kXyvSNGgKy4gshRT.s8CJ.Kgzpmrn2k.MvDSVLbHnfpei8PejSKkq
+JWT_SECRET=your_random_64_char_jwt_secret_here
+CLIENT_URL=http://localhost:5173
+NODE_ENV=development
+```
+*(The default pin hash corresponds to PIN `1234`)*
+
+Seed the 20 empirical fieldwork records:
+```bash
+npm run seed
 ```
 
-Start the backend:
-
+Start backend development server:
 ```bash
 npm run dev
 ```
 
-### 3. Set Up the Frontend
-
-Open another terminal:
-
+### 2. Setup Frontend
+In another terminal:
 ```bash
 cd client
 npm install
 npm run dev
 ```
-
-The frontend development URL will be displayed in the terminal.
-
-**Note:** These commands describe the intended setup. The necessary dependencies and scripts must be configured in the respective `package.json` files during development.
+Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 🚀 Development Roadmap
+## 🧪 Testing
 
-- [x] Identify the real-world problem.
-- [x] Conduct shopkeeper interview and fieldwork.
-- [x] Collect 20 or more actual printing job records.
-- [x] Prepare initial project research.
-- [ ] Complete fieldwork documentation and organize evidence.
-- [ ] Set up the React frontend.
-- [ ] Set up the Node.js and Express backend.
-- [ ] Connect the application to MongoDB.
-- [ ] Create the printing job model and APIs.
-- [ ] Build the shopkeeper dashboard.
-- [ ] Implement queue management.
-- [ ] Implement waiting-time estimation.
-- [ ] Build the student interface.
-- [ ] Test the application using collected job records.
-- [ ] Document testing results and limitations.
+The backend includes a comprehensive automated test suite verifying pricing calculations, authentication guards, PDF parsing, payment agreements, and status transitions:
 
----
-
-## 📸 Fieldwork Evidence
-
-Photographs and supporting fieldwork evidence are intended to be stored in:
-
-```text
-evidence/fieldwork/
+```bash
+cd server
+npm run test:full
 ```
 
-These materials document the campus printing shop visit and support the problem identification process.
-
----
-
-## 🔮 Future Improvements
-
-- Real-time queue updates.
-- Student order submission through the application.
-- Notifications when a job is ready.
-- Improved estimates using a larger historical dataset.
-- Separate handling of walk-in and online orders.
-- Daily and weekly workload analytics.
-- Better estimation for different printing types and page counts.
-
----
-
-## ⚠️ Limitations
-
-- The initial dataset contains only 20 job records.
-- Waiting-time estimates may become less accurate when the shop receives an unusually large number of orders.
-- Printing time can vary depending on the printer, document, page count, and job type.
-- The initial estimation method is a statistical baseline, not a guarantee of actual completion time.
-- More data will be needed to evaluate and improve prediction accuracy.
-
----
-
-## 👨‍💻 Project Information
-
-| Detail | Information |
-|---|---|
-| Project Name | PrintQueue |
-| Repository | [Print-Queue](https://github.com/anuragsharma2512/Print-Queue) |
-| Project Type | Web Application |
-| Domain | Queue Management and Printing Services |
-| Technology | MERN Stack |
-| Fieldwork Location | NIT Jamshedpur Campus Printing Shop |
-| Fieldwork Date | 17 November 2026 |
-| Dataset Size | 20 job records |
+**Test Coverage Summary:**
+- ✅ Official pricing formulas across Xerox, Colour Xerox, B&W Printout, and Colour Printout.
+- ✅ Correct vs. incorrect PIN authentication and HttpOnly cookie generation.
+- ✅ Route protection on all shopkeeper-only endpoints.
+- ✅ PDF document upload validation and page-count detection.
+- ✅ Server-side price calculation verification.
+- ✅ Mandatory payment agreement enforcement.
+- ✅ Public order tracking and privacy checks (no leaked file paths).
+- ✅ Authenticated document download for shopkeeper vs. 401 for public.
+- ✅ Queue management and forward-only status transitions.
 
 ---
 
 ## 📄 License
-
-This project is developed for academic and educational purposes.
+Developed for academic and educational purposes at NIT Jamshedpur.
