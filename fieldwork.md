@@ -4,9 +4,11 @@
 ## Fieldwork Details
 
 - **Project Name:** PrintQueue
+- **Person Name:** Ajay Kumar
+- **Role:** Shopkeeper Worker
 - **Location:** Campus Photocopy and Printing Shop, NIT Jamshedpur
 - **Date of Visit:** 17 November 2026
-- **Person Interviewed:** Shopkeeper
+- **Person Interviewed:** Shopkeeper Worker
 - **Fieldwork Method:** Shopkeeper interview, collection of printing job records, observation of queue and WhatsApp orders, and photography
 - **Number of Job Records Collected:** 20
 - **Photographs:** Taken during the fieldwork visit

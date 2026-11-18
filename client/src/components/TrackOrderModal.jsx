@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { studentOrdersApi } from '../services/api'
 import { Button } from './ui/Button'
-import { Input, Label } from './ui/Form'
+import { Input } from './ui/Form'
 import StatusBadge from './StatusBadge'
 import JobTypeTag from './JobTypeTag'
 import { formatTime } from '../lib/utils'
-import { Search, X, Loader2, AlertCircle, FileText, CheckCircle2, Clock } from 'lucide-react'
+import { Search, X, Loader2, AlertCircle, User, Phone, FileText } from 'lucide-react'
 
 export default function TrackOrderModal({ isOpen, onClose }) {
   const [orderId, setOrderId] = useState('')
@@ -94,36 +94,69 @@ export default function TrackOrderModal({ isOpen, onClose }) {
               </div>
 
               <div className="space-y-2 text-xs">
-                {orderData.fileName && (
+                {orderData.studentName && (
                   <div className="flex justify-between items-center">
-                    <span className="text-slate-500">File:</span>
-                    <span className="font-semibold text-slate-800 truncate max-w-[200px]">
-                      {orderData.fileName}
-                    </span>
+                    <span className="text-slate-500">Student:</span>
+                    <span className="font-bold text-slate-800">{orderData.studentName}</span>
                   </div>
                 )}
+
+                {orderData.items && orderData.items.length > 0 ? (
+                  <div className="space-y-1.5 border-t border-slate-200/60 pt-2">
+                    <span className="text-slate-500 font-medium block">
+                      Documents ({orderData.items.length}):
+                    </span>
+                    <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                      {orderData.items.map((it, i) => (
+                        <div key={i} className="flex justify-between items-center text-[11px] bg-white p-1.5 rounded border border-slate-200/70">
+                          <span className="truncate max-w-[180px] font-semibold text-slate-800">
+                            📄 {it.fileName}
+                          </span>
+                          <span className="text-slate-500">
+                            {it.printingType} · {it.totalPages} pgs
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    {orderData.fileName && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-500">File:</span>
+                        <span className="font-semibold text-slate-800 truncate max-w-[200px]">
+                          {orderData.fileName}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex justify-between items-center">
+                      <span className="text-slate-500">Service:</span>
+                      <JobTypeTag jobType={orderData.printingType} />
+                    </div>
+                  </>
+                )}
+
                 <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Service:</span>
-                  <JobTypeTag jobType={orderData.printingType} />
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-500">Pages:</span>
+                  <span className="text-slate-500">Total Printed Pages:</span>
                   <span className="font-semibold text-slate-800">
-                    {orderData.totalPages} total ({orderData.pageCount || orderData.totalPages} pgs × {orderData.copies || 1} {orderData.copies === 1 ? 'copy' : 'copies'})
+                    {orderData.totalPages} pages
                   </span>
                 </div>
+
                 {orderData.estimatedAmount && (
                   <div className="flex justify-between items-center border-t border-slate-200/60 pt-2 font-bold">
                     <span className="text-slate-700">Amount to Pay:</span>
                     <span className="text-sm text-indigo-700 font-extrabold">₹{orderData.estimatedAmount}</span>
                   </div>
                 )}
+
                 <div className="flex justify-between items-center text-[11px]">
                   <span className="text-slate-500">Payment:</span>
                   <span className="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                     {orderData.paymentStatus || 'PENDING'} (At counter)
                   </span>
                 </div>
+
                 <div className="flex justify-between items-center text-[11px] text-slate-400">
                   <span>Submitted:</span>
                   <span>{formatTime(orderData.arrivalTime)}</span>

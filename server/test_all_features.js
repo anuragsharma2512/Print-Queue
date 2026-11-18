@@ -62,6 +62,29 @@ const sendFormUpload = async (endpoint, fields, fileInfo) => {
   return { status: res.status, headers: res.headers, data };
 };
 
+const sendMultiFormUpload = async (endpoint, fields, files = []) => {
+  const form = new FormData();
+  for (const [k, v] of Object.entries(fields)) {
+    form.append(k, v);
+  }
+  for (const f of files) {
+    const blob = new Blob([f.buffer], { type: f.contentType });
+    form.append(f.fieldName || 'documents', blob, f.filename);
+  }
+
+  const res = await fetch(`${BASE_URL}${endpoint}`, {
+    method: 'POST',
+    body: form,
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch {}
+
+  return { status: res.status, headers: res.headers, data };
+};
+
 const runComprehensiveTests = async () => {
   console.log('\n======================================================');
   console.log('🧪 PRINTQUEUE - FULL SYSTEM VERIFICATION SUITE');
@@ -254,6 +277,86 @@ const runComprehensiveTests = async () => {
       });
       test('Shopkeeper Marks Order as Completed', completeRes.status === 200);
     }
+
+    // -----------------------------------------------------------------
+    // 4. MULTI-MATERIAL SUBMISSION & STUDENT IDENTIFICATION TESTS
+    // -----------------------------------------------------------------
+    console.log('\n--- 4. Multi-Material Submission & Student Identification ---');
+
+    // 4.1 Reject invalid phone number
+    const badPhoneRes = await sendMultiFormUpload('/api/student-orders', {
+      studentName: 'Anurag Sharma',
+      studentPhone: '12345', // invalid length
+      paymentAcknowledged: 'true',
+    }, [{
+      fieldName: 'documents',
+      filename: 'doc1.pdf',
+      contentType: 'application/pdf',
+      buffer: createMinimalPdfBuffer(2),
+    }]);
+    test('Reject Invalid Phone Number (returns 400)', badPhoneRes.status === 400);
+
+    // 4.2 Multi-Document Submission with Student Details
+    // Doc 1: 3 pages, Colour Xerox (₹5/page), 1 copy -> ₹15
+    // Doc 2: 2 pages, Black & White Printout (₹3/page), 2 copies -> 4 pages -> ₹12
+    // Grand Total: 7 total printed pages, ₹27
+    const pdfDoc1 = createMinimalPdfBuffer(3);
+    const pdfDoc2 = createMinimalPdfBuffer(2);
+
+    const multiOrderRes = await sendMultiFormUpload('/api/student-orders', {
+      studentName: 'Anurag Sharma',
+      studentPhone: '9876543210',
+      paymentAcknowledged: 'true',
+      metadata: JSON.stringify([
+        { printingType: 'Colour Xerox', copies: 1 },
+        { printingType: 'Black & White Printout', copies: 2 },
+      ]),
+    }, [
+      { fieldName: 'documents', filename: 'chapter1.pdf', contentType: 'application/pdf', buffer: pdfDoc1 },
+      { fieldName: 'documents', filename: 'assignment2.pdf', contentType: 'application/pdf', buffer: pdfDoc2 },
+    ]);
+
+    test('Submit Multi-Document Order (returns 201 Created)', multiOrderRes.status === 201);
+    const multiOrder = multiOrderRes.data?.order;
+    const multiOrderId = multiOrder?.jobId;
+
+    test('Multi-Order Stores Student Name', multiOrder?.studentName === 'Anurag Sharma');
+    test('Multi-Order Contains 2 Document Items', multiOrder?.items?.length === 2);
+    test('Doc 1 Correct Total & Price (3 pgs × 1 × ₹5 = ₹15)',
+      multiOrder?.items?.[0]?.totalPages === 3 && multiOrder?.items?.[0]?.itemTotal === 15
+    );
+    test('Doc 2 Correct Total & Price (2 pgs × 2 × ₹3 = ₹12)',
+      multiOrder?.items?.[1]?.totalPages === 4 && multiOrder?.items?.[1]?.itemTotal === 12
+    );
+    test('Consolidated Total Printed Pages (3 + 4 = 7)', multiOrder?.totalPages === 7);
+    test('Consolidated Grand Total Price (15 + 12 = ₹27)', multiOrder?.estimatedAmount === 27);
+
+    // 4.3 Multi-Document Tracking API
+    const trackMultiRes = await fetch(`${BASE_URL}/api/student-orders/track/${multiOrderId}`);
+    const trackMultiData = await trackMultiRes.json();
+    test('Track Multi-Order Returns Student Details', trackMultiData?.studentName === 'Anurag Sharma');
+    test('Track Multi-Order Masks Student Phone', Boolean(trackMultiData?.studentPhone && trackMultiData.studentPhone.includes('****')));
+    test('Track Multi-Order Returns All Document Items', trackMultiData?.items?.length === 2);
+
+    // 4.4 Multi-Document Individual Download Links
+    const doc0Res = await fetch(`${BASE_URL}/api/student-orders/${multiOrderId}/document/0`, {
+      headers: { cookie: cookieHeader },
+    });
+    test('Shopkeeper Download Document #0 by Index (returns 200 PDF)',
+      doc0Res.status === 200 && doc0Res.headers.get('content-type')?.includes('application/pdf')
+    );
+
+    const doc1Res = await fetch(`${BASE_URL}/api/student-orders/${multiOrderId}/document/1`, {
+      headers: { cookie: cookieHeader },
+    });
+    test('Shopkeeper Download Document #1 by Index (returns 200 PDF)',
+      doc1Res.status === 200 && doc1Res.headers.get('content-type')?.includes('application/pdf')
+    );
+
+    const docInvalidRes = await fetch(`${BASE_URL}/api/student-orders/${multiOrderId}/document/99`, {
+      headers: { cookie: cookieHeader },
+    });
+    test('Download Out-of-Bounds Document Index Returns 404', docInvalidRes.status === 404);
 
   } catch (err) {
     console.error('Fatal Test Runner Exception:', err);

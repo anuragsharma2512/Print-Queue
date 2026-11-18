@@ -116,14 +116,7 @@ export default function DashboardPage() {
             )}
           </span>
 
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${
-            isLive
-              ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-              : 'bg-indigo-50 text-indigo-700 border-indigo-200'
-          }`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${isLive ? 'bg-emerald-500' : 'bg-indigo-500'}`}></span>
-            {isLive ? 'Live MongoDB Server' : 'Local Sandbox Mode'}
-          </span>
+          
 
           {/* Explicit Lock & Switch action */}
           <Button
@@ -133,7 +126,7 @@ export default function DashboardPage() {
             className="h-8 gap-1.5 text-xs text-rose-700 border-rose-200 hover:bg-rose-50"
           >
             <LogOut className="h-3.5 w-3.5" />
-            <span>Lock Console & Switch to Student View</span>
+            <span>Lock Dashboard & Switch to Student View</span>
           </Button>
         </div>
       </div>

@@ -38,8 +38,8 @@ const fileFilter = (req, file, cb) => {
 export const uploadPdf = multer({
   storage,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10 MB limit
-    files: 1,
+    fileSize: 10 * 1024 * 1024, // 10 MB limit per file
+    files: 10, // up to 10 documents per batch
   },
   fileFilter,
 });

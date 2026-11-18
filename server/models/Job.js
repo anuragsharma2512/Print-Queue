@@ -1,5 +1,55 @@
 import mongoose from 'mongoose';
 
+const orderItemSchema = new mongoose.Schema(
+  {
+    fileName: {
+      type: String,
+      required: true,
+    },
+    storedFileReference: {
+      type: String,
+      required: true,
+    },
+    pageCount: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    copies: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    totalPages: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+    printingType: {
+      type: String,
+      required: true,
+      enum: [
+        'B&W Print',
+        'Colour Print',
+        'B&W Photocopy',
+        'Xerox',
+        'Colour Xerox',
+        'Black & White Printout',
+        'Colour Printout',
+      ],
+    },
+    pricePerPage: {
+      type: Number,
+      required: true,
+    },
+    itemTotal: {
+      type: Number,
+      required: true,
+    },
+  },
+  { _id: true }
+);
+
 const jobSchema = new mongoose.Schema(
   {
     jobId: {
@@ -8,7 +58,20 @@ const jobSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
-    // Supports both fieldwork naming and campus price-list naming
+    // Student identification
+    studentName: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    studentPhone: {
+      type: String,
+      trim: true,
+      default: null,
+    },
+    // Multi-item support for batch student uploads
+    items: [orderItemSchema],
+    // Primary / aggregate printing type
     jobType: {
       type: String,
       required: [true, 'Job type is required'],
@@ -21,6 +84,7 @@ const jobSchema = new mongoose.Schema(
           'Colour Xerox',
           'Black & White Printout',
           'Colour Printout',
+          'Multiple Documents',
         ],
         message: '{VALUE} is not a valid printing type',
       },
@@ -31,13 +95,13 @@ const jobSchema = new mongoose.Schema(
         return this.jobType;
       },
     },
-    // Total pages to be printed (accounts for copies)
+    // Total printed pages across all documents and copies
     pages: {
       type: Number,
       required: [true, 'Number of pages is required'],
       min: [1, 'Pages must be at least 1'],
     },
-    // PDF document details (for student online uploads)
+    // Primary document name (or first document name if multiple)
     fileName: {
       type: String,
       default: null,
@@ -125,12 +189,25 @@ const jobSchema = new mongoose.Schema(
   }
 );
 
-// Pre-save hook to ensure totalPages and pages stay in sync
+// Pre-save hook to ensure totalPages, pages, and items stay synchronized
 jobSchema.pre('save', function (next) {
-  if (this.pageCount && this.copies) {
-    this.totalPages = this.pageCount * this.copies;
-    this.pages = this.totalPages;
+  if (this.items && this.items.length > 0) {
+    this.pages = this.items.reduce((sum, item) => sum + (item.totalPages || item.pageCount * item.copies), 0);
+    this.totalPages = this.pages;
+    this.estimatedAmount = this.items.reduce((sum, item) => sum + (item.itemTotal || 0), 0);
+    if (!this.fileName) {
+      this.fileName = this.items[0].fileName;
+    }
+    if (!this.storedFileReference) {
+      this.storedFileReference = this.items[0].storedFileReference;
+    }
+  } else {
+    if (this.pageCount && this.copies) {
+      this.totalPages = this.pageCount * this.copies;
+      this.pages = this.totalPages;
+    }
   }
+
   if (!this.printingType) {
     this.printingType = this.jobType;
   }

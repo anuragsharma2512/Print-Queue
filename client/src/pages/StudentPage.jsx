@@ -82,7 +82,7 @@ export default function StudentPage() {
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 pb-4">
         <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
           <MapPin className="h-3.5 w-3.5 text-indigo-600" />
-          <span>Campus Photocopy & Print Center · Academic Block Ground Floor</span>
+          <span>Campus Photocopy & Print Center · Near Library</span>
         </div>
         <div className="flex items-center gap-2.5">
           {/* Shop Hours Pill */}
@@ -179,11 +179,6 @@ export default function StudentPage() {
                     </>
                   )}
                 </span>
-                {lastUpdated && (
-                  <span className="text-slate-400 text-xs">
-                    Updated {formatTime(lastUpdated)}
-                  </span>
-                )}
               </div>
 
               {shopStatus.isOpen ? (
@@ -307,11 +302,16 @@ export default function StudentPage() {
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                  {processingJob.studentName && (
+                    <span className="text-xs font-bold text-slate-800 bg-white/90 px-2 py-0.5 rounded border border-indigo-200">
+                      👤 {processingJob.studentName}
+                    </span>
+                  )}
                   <JobTypeTag jobType={processingJob.jobType || processingJob.printingType} />
                   <span className="text-xs font-bold text-slate-700">
                     {processingJob.totalPages || processingJob.pages} pages
-                    {processingJob.copies && processingJob.copies > 1 ? ` (${processingJob.copies} copies)` : ''}
+                    {processingJob.items && processingJob.items.length > 1 ? ` (${processingJob.items.length} files)` : (processingJob.copies && processingJob.copies > 1 ? ` (${processingJob.copies} copies)` : '')}
                   </span>
                   <MethodTag method={processingJob.submissionMethod} />
                 </div>
@@ -320,6 +320,15 @@ export default function StudentPage() {
                   <p className="text-[11px] text-slate-500">Finishing shortly</p>
                 </div>
               </div>
+              {(processingJob.items && processingJob.items.length > 1) ? (
+                <div className="mt-2 text-[11px] text-slate-600 font-medium truncate max-w-md">
+                  📁 {processingJob.items.length} documents: {processingJob.items.map(i => i.fileName).join(', ')}
+                </div>
+              ) : processingJob.fileName ? (
+                <div className="mt-2 text-[11px] text-slate-600 font-medium truncate max-w-md">
+                  📄 {processingJob.fileName}
+                </div>
+              ) : null}
             </div>
           )}
 
@@ -357,19 +366,28 @@ export default function StudentPage() {
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="font-mono text-xs font-bold text-slate-900">{job.jobId}</span>
+                          {job.studentName && (
+                            <span className="text-xs font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
+                              👤 {job.studentName}
+                            </span>
+                          )}
                           <JobTypeTag jobType={job.jobType || job.printingType} />
                           <span className="text-xs text-slate-600 font-medium">
                             {job.totalPages || job.pages} pages
-                            {job.copies && job.copies > 1 ? ` (${job.copies} copies)` : ''}
+                            {job.items && job.items.length > 1 ? ` (${job.items.length} files)` : (job.copies && job.copies > 1 ? ` (${job.copies} copies)` : '')}
                           </span>
                           <MethodTag method={job.submissionMethod} />
                         </div>
                         <div className="flex items-center gap-2 mt-1 text-[11px] text-slate-400">
-                          {job.fileName && (
-                            <span className="truncate max-w-[180px] font-medium text-slate-600">
+                          {job.items && job.items.length > 1 ? (
+                            <span className="truncate max-w-[240px] font-medium text-slate-600" title={job.items.map(i => i.fileName).join(', ')}>
+                              📁 {job.items.length} documents: {job.items.map(i => i.fileName).join(', ')}
+                            </span>
+                          ) : job.fileName ? (
+                            <span className="truncate max-w-[180px] font-medium text-slate-600" title={job.fileName}>
                               📄 {job.fileName}
                             </span>
-                          )}
+                          ) : null}
                           <span>Arrived at {formatTime(job.arrivalTime)}</span>
                         </div>
                       </div>
