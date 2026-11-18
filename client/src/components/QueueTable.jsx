@@ -60,23 +60,23 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
   return (
     <div className="overflow-hidden rounded-2xl border border-slate-200/90 bg-white shadow-xs">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs">
+        <table className="w-full text-left text-xs table-auto">
           <thead>
-            <tr className="border-b border-slate-200/80 bg-slate-50/80 font-bold uppercase tracking-wider text-slate-500">
-              <th className="px-4 py-3.5 w-12 text-center">#</th>
-              <th className="px-4 py-3.5">Job ID</th>
-              <th className="px-4 py-3.5">Student</th>
-              <th className="px-4 py-3.5">Documents & Type</th>
-              <th className="px-4 py-3.5 text-center">Pages</th>
-              <th className="px-4 py-3.5">Payment</th>
-              <th className="px-4 py-3.5">Channel</th>
-              <th className="px-4 py-3.5">Arrival</th>
+            <tr className="border-b border-slate-200/80 bg-slate-50/90 font-bold uppercase tracking-wider text-slate-500 text-[10px]">
+              <th className="px-2.5 py-3 w-9 text-center">#</th>
+              <th className="px-2.5 py-3 whitespace-nowrap">Job ID</th>
+              <th className="px-2.5 py-3 whitespace-nowrap">Student</th>
+              <th className="px-2.5 py-3">Documents & Type</th>
+              <th className="px-2 py-3 text-center whitespace-nowrap">Pages</th>
+              <th className="px-2.5 py-3 whitespace-nowrap">Payment</th>
+              <th className="px-2 py-3 whitespace-nowrap">Channel</th>
+              <th className="px-2 py-3 whitespace-nowrap">Arrival</th>
               {showHistory && (
-                <th className="px-4 py-3.5">Duration</th>
+                <th className="px-2.5 py-3 whitespace-nowrap">Duration</th>
               )}
-              <th className="px-4 py-3.5">Status</th>
+              <th className="px-2.5 py-3 whitespace-nowrap">Status</th>
               {!showHistory && (
-                <th className="px-4 py-3.5 text-right">Queue Action</th>
+                <th className="px-3 py-3 text-right whitespace-nowrap">Action</th>
               )}
             </tr>
           </thead>
@@ -99,24 +99,24 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                   }`}
                 >
                   {/* Sequence Position */}
-                  <td className="px-4 py-3.5 text-center">
+                  <td className="px-2.5 py-2.5 text-center">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-slate-100 font-extrabold text-[11px] text-slate-600">
                       {index + 1}
                     </span>
                   </td>
 
                   {/* Job ID */}
-                  <td className="px-4 py-3.5 font-mono font-bold text-slate-900">
+                  <td className="px-2.5 py-2.5 font-mono font-bold text-slate-900 whitespace-nowrap">
                     {job.jobId}
                   </td>
 
                   {/* Student Name & Phone */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-2.5 py-2.5 whitespace-nowrap">
                     {job.studentName ? (
-                      <div>
+                      <div className="min-w-0">
                         <div className="flex items-center gap-1 font-bold text-slate-900">
                           <User className="h-3 w-3 text-indigo-600 shrink-0" />
-                          <span className="truncate max-w-[130px]">{job.studentName}</span>
+                          <span className="truncate max-w-[130px]" title={job.studentName}>{job.studentName}</span>
                         </div>
                         {job.studentPhone && (
                           <div className="flex items-center gap-1 text-[11px] text-slate-500 mt-0.5 font-mono">
@@ -126,26 +126,26 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                         )}
                       </div>
                     ) : (
-                      <span className="text-slate-400 italic">Walk-in Customer</span>
+                      <span className="text-slate-400 italic text-[11px]">Walk-in Customer</span>
                     )}
                   </td>
 
                   {/* Documents & Printing Type */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-2.5 py-2.5">
                     {itemsList.length > 0 ? (
-                      <div className="space-y-1.5 max-w-[220px]">
+                      <div className="space-y-1 max-w-[210px]">
                         {itemsList.map((doc, docIdx) => {
                           const downloadKey = `${job.jobId}-${docIdx}`
                           const isDownloading = downloadingRef === downloadKey
 
                           return (
-                            <div key={docIdx} className="flex items-center justify-between gap-1.5 bg-slate-50 px-2 py-1 rounded-lg border border-slate-200/70">
+                            <div key={docIdx} className="flex items-center justify-between gap-1.5 bg-slate-50/90 hover:bg-slate-100/90 px-2 py-1 rounded-md border border-slate-200/80 transition-colors">
                               <div className="min-w-0 pr-1">
-                                <p className="font-semibold text-slate-800 truncate text-[11px]" title={doc.fileName}>
+                                <p className="font-semibold text-slate-800 truncate text-[11px] leading-tight max-w-[150px]" title={doc.fileName}>
                                   📄 {doc.fileName}
                                 </p>
-                                <div className="flex items-center gap-1 text-[10px] text-slate-500">
-                                  <span>{doc.printingType}</span>
+                                <div className="flex items-center gap-1 text-[10px] text-slate-500 mt-0.5 leading-none">
+                                  <span className="font-medium text-slate-700">{doc.printingType}</span>
                                   <span>•</span>
                                   <span>{doc.pageCount}p × {doc.copies}c</span>
                                 </div>
@@ -155,7 +155,7 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                                 type="button"
                                 onClick={() => handleDownloadFile(job.jobId, docIdx, doc.fileName)}
                                 disabled={isDownloading}
-                                className="inline-flex items-center justify-center h-6 w-6 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors shrink-0 cursor-pointer"
+                                className="inline-flex items-center justify-center h-6 w-6 rounded bg-indigo-50 text-indigo-700 hover:bg-indigo-100 hover:text-indigo-900 transition-colors shrink-0 cursor-pointer"
                                 title="Download PDF"
                               >
                                 {isDownloading ? (
@@ -171,13 +171,13 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                     ) : (
                       <div className="space-y-0.5">
                         <JobTypeTag jobType={job.jobType || job.printingType} />
-                        <span className="block text-[11px] text-slate-400 italic">Physical Document</span>
+                        <span className="block text-[10px] text-slate-400 italic">Physical Document</span>
                       </div>
                     )}
                   </td>
 
                   {/* Total Pages */}
-                  <td className="px-4 py-3.5 text-center font-bold text-slate-800">
+                  <td className="px-2 py-2.5 text-center font-bold text-slate-800 whitespace-nowrap">
                     <span>{job.totalPages || job.pages}</span>
                     {hasItems && (
                       <span className="block text-[10px] font-normal text-slate-400">
@@ -187,7 +187,7 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                   </td>
 
                   {/* Payment */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-2.5 py-2.5 whitespace-nowrap">
                     {job.estimatedAmount ? (
                       <div>
                         <span className="font-extrabold text-slate-900 text-xs">
@@ -205,37 +205,37 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                   </td>
 
                   {/* Submission Method */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-2 py-2.5 whitespace-nowrap">
                     <MethodTag method={job.submissionMethod} />
                   </td>
 
                   {/* Arrival */}
-                  <td className="px-4 py-3.5 text-slate-500 tabular-nums">
+                  <td className="px-2 py-2.5 text-slate-500 tabular-nums whitespace-nowrap text-[11px]">
                     {formatTime(job.arrivalTime)}
                   </td>
 
                   {/* Historical Duration */}
                   {showHistory && (
-                    <td className="px-4 py-3.5 text-slate-700 font-semibold tabular-nums">
+                    <td className="px-2.5 py-2.5 text-slate-700 font-semibold tabular-nums whitespace-nowrap">
                       {job.serviceTimeSeconds ? formatSeconds(job.serviceTimeSeconds) : '—'}
                     </td>
                   )}
 
                   {/* Status Badge */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-2.5 py-2.5 whitespace-nowrap">
                     <StatusBadge status={job.status} />
                   </td>
 
                   {/* Actions (Forward-only transitions) */}
                   {!showHistory && (
-                    <td className="px-4 py-3.5 text-right">
+                    <td className="px-3 py-2.5 text-right whitespace-nowrap">
                       {job.status === 'Pending' && (
                         <Button
                           size="sm"
                           variant="blue"
                           disabled={isCurrentUpdating}
                           onClick={() => handleUpdate(job, 'Processing')}
-                          className="h-8 gap-1.5"
+                          className="h-7.5 px-3 text-xs gap-1.5 font-semibold shadow-2xs"
                         >
                           {isCurrentUpdating ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
@@ -254,7 +254,7 @@ export default function QueueTable({ jobs, onStatusUpdate, showHistory = false }
                           variant="success"
                           disabled={isCurrentUpdating}
                           onClick={() => handleUpdate(job, 'Completed')}
-                          className="h-8 gap-1.5"
+                          className="h-7.5 px-3 text-xs gap-1.5 font-semibold shadow-2xs"
                         >
                           {isCurrentUpdating ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
